@@ -1,0 +1,223 @@
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>每日喂养</title>
+    <style>
+        /* Enlarge form elements */
+        select, input[type="datetime-local"], input[type="submit"] {
+            font-size: 48px;
+            padding: 20px 40px;
+        }
+
+        /* Style the tab buttons */
+        .tab-button {
+            background-color: #f2f2f2;
+            border: none;
+            color: black;
+            padding: 30px 60px;
+            cursor: pointer;
+            font-size: 54px;
+            border-top-left-radius: 5px;
+            border-top-right-radius: 5px;
+        }
+
+        /* Enlarge text */
+        body {
+            font-size: 48px;
+        }
+
+        /* Change background color of active tab button */
+        .tab-button.active {
+            background-color: #ccc;
+        }
+
+        /* Style the tab content */
+        .tab-content {
+            display: none;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-top: none;
+        }
+
+        /* Show the active tab content */
+        .tab-content.active {
+            display: block;
+        }
+
+
+
+    </style>
+
+</head>
+<body>
+<div class="tab">
+    <button class="tab-button active" onclick="openTab(event, 'add-item')">Add Item</button>
+    <button class="tab-button " onclick="openTab(event, 'completed-items')">Completed Items</button>
+</div>
+
+<div id="add-item" class="tab-content">
+    <h1>新增事件</h1>
+    <form>
+        <label for="additem">事件:</label>
+        <select id="additem" name="additem">
+            <option value="milk">milk</option>
+            <option value="diaper">diaper</option>
+            <option value="shit">shit</option>
+        </select><br>
+
+        <label for="description">奶量:</label>
+        <select id="description" name="description">
+            <option value="15 ml">15 ml</option>
+            <option value="20 ml">20 ml</option>
+            <option value="25 ml">25 ml</option>
+            <option value="30 ml">30 ml</option>
+            <option value="35 ml">35 ml</option>
+            <option value="40 ml">40 ml</option>
+            <option value="45 ml">45 ml</option>
+            <option value="50 ml">50 ml</option>
+            <option value="55 ml">55 ml</option>
+            <option value="60 ml">60 ml</option>
+            <option value="65 ml">65 ml</option>
+            <option value="70 ml">70 ml</option>
+            <option value="75 ml">75 ml</option>
+            <option value="80 ml">80 ml</option>
+            <option value="85 ml">85 ml</option>
+            <option value="90 ml">90 ml</option>
+            <option value="95 ml">95 ml</option>
+            <option value="100 ml">100 ml</option>
+            <option value="105 ml">105 ml</option>
+            <option value="110 ml">110 ml</option>
+            <option value="115 ml">115 ml</option>
+            <option value="120 ml">120 ml</option>
+        </select> <br>
+
+        <label for="completed-time">完成时间:</label>
+        <input type="datetime-local" id="completed-time" name="completed-time" step="60"><br>
+
+        <input type="submit" value="Add Item">
+    </form>
+</div>
+
+
+<div id="completed-items" class="tab-content ">
+    <h1>已完成</h1>
+    <table>
+        <thead>
+        <tr>
+            <th>事项</th>
+            <th>描述</th>
+            <th>完成时间</th>
+            <th>删除</th>
+        </tr>
+        </thead>
+        <tbody id="completed-items-table"></tbody>
+    </table>
+</div>
+
+<script>
+
+    // Get all tab buttons
+    var tabButtons = document.getElementsByClassName("tab-button");
+
+    // Get all tab content
+    var tabContents = document.getElementsByClassName("tab-content");
+
+    // Set the default tab to be the first one
+    tabButtons[0].classList.add("active");
+    tabContents[0].classList.add("active");
+
+    // Function to open a tab and show its content
+    function openTab(evt, tabName) {
+        // Hide all tab content first
+        for (var i = 0; i < tabContents.length; i++) {
+            tabContents[i].classList.remove("active");
+        }
+
+        // Remove "active" class from all tab buttons
+        for (var i = 0; i < tabButtons.length; i++) {
+            tabButtons[i].classList.remove("active");
+        }
+
+        // Show the clicked tab content
+        document.getElementById(tabName).classList.add("active");
+
+        // Add "active" class to the clicked tab button
+        evt.currentTarget.classList.add("active");
+
+        if (tabName === "completed-items") {
+            fetchCompletedItems();
+        }
+    }
+
+    function fetchCompletedItems() {
+        fetch("/completed-items")
+            .then(response => response.json())
+            .then(data => {
+                const completedItemsTable = document.getElementById("completed-items-table");
+                completedItemsTable.innerHTML = "";
+
+                data.forEach(item => {
+                    const tr = document.createElement("tr");
+                    tr.innerHTML = `
+                    <td>${item.item}</td>
+                    <td>${item.description}</td>
+                    <td>${item.completed_time}</td>
+                    <td><input type="checkbox" name="delete" value="${item.id}" onchange="deleteItem(this)"></td>
+                `;
+                    completedItemsTable.appendChild(tr);
+                });
+            })
+            .catch(error => {
+                console.error(error);
+            });
+    }
+
+    function deleteItem(checkbox) {
+        const itemId = checkbox.value;
+        fetch(`/completed-items?id=${itemId}`, {method: 'DELETE'})
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                fetchCompletedItems()
+            })
+            .catch(error => {
+                console.error(error);
+            });
+
+    }
+
+
+    const addItemForm = document.querySelector("#add-item form");
+    addItemForm.addEventListener("submit", event => {
+        event.preventDefault();
+
+        const item = addItemForm.elements.additem.value;
+        const description = addItemForm.elements.description.value;
+        const completedTime = addItemForm.elements["completed-time"].value;
+
+        const requestBody = {
+            item: item,
+            description: description === "null" ? "" : description,
+            completed_time: completedTime
+        };
+
+        fetch("/completed-items", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(requestBody)
+        })
+            .then(response => response.json())
+            .then(data => {
+                console.log("Item added:", data);
+                addItemForm.reset();
+            })
+            .catch(error => {
+                console.error(error);
+            });
+    });
+</script>
+</body>
+</html>

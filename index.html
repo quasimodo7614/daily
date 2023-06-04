@@ -1,5 +1,6 @@
 <html>
 <head>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <meta charset="UTF-8">
     <title>每日喂养</title>
     <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,600,700" rel="stylesheet">
@@ -103,12 +104,13 @@
 </head>
 <body>
 <div class="tab">
-    <button class="tab-button active" onclick="openTab(event, 'add-item')">添加事件</button>
-    <button class="tab-button " onclick="openTab(event, 'completed-items')">已完成事件</button>
+    <button class="tab-button active" onclick="openTab(event, 'add-item')">新增</button>
+    <button class="tab-button " onclick="openTab(event, 'completed-items')">已完成</button>
+    <button class="tab-button " onclick="openTab(event, 'history')">历史</button>
 </div>
 
 <div id="add-item" class="tab-content">
-    <h1>新增事件</h1>
+    <h1>新增</h1>
     <form>
         <label for="additem">事件:</label>
         <select id="additem" name="additem">
@@ -136,7 +138,7 @@
         <label for="completed-time">完成时间:</label>
         <input type="datetime-local" id="completed-time" name="completed-time" step="60">
 
-        <input type="submit" value="Add Item">
+        <input type="submit" value="确认">
     </form>
 </div>
 
@@ -155,7 +157,65 @@
         <tbody id="completed-items-table"></tbody>
     </table>
 </div>
+
+<div id="history" class="tab-content">
+    <h1>历史数据</h1>
+    <canvas id="myChart"></canvas>
+    <div>
+        <label for="days">选择天数:</label>
+        <select id="days">
+            <option value="">--请选择--</option>
+            <option value="1">近一天</option>
+            <option value="7">近七天</option>
+            <option value="30">近30天</option>
+        </select>
+    </div>
+</div>
+
 </body>
+
+<script>
+    const canvas = document.getElementById('myChart');
+    const ctx = canvas.getContext('2d');
+    const chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: [
+                {
+                    label: '奶量',
+                    data: [],
+                    borderColor: 'blue',
+                    fill: false,
+                },
+                {
+                    label: '尿不湿次数',
+                    data: [],
+                    borderColor: 'green',
+                    fill: false,
+                },
+                {
+                    label: '大便次数',
+                    data: [],
+                    borderColor: 'red',
+                    fill: false,
+                },
+            ],
+        },
+    });
+
+    const daysSelect = document.getElementById('days');
+    daysSelect.addEventListener('change', async () => {
+        const days = daysSelect.value;
+        const response = await fetch(`/api/data?days=${days}`);
+        const data = await response.json();
+        chart.data.labels = data.labels;
+        chart.data.datasets[0].data = data.milk;
+        chart.data.datasets[1].data = data.diapers;
+        chart.data.datasets[2].data = data.poops;
+        chart.update();
+    });
+</script>
 
 <script>
 
@@ -190,11 +250,12 @@
         if (tabName === "completed-items") {
             fetchCompletedItems();
             // Set interval to poll data every 5 seconds
-            setInterval(function() {
+            setInterval(function () {
                 fetchCompletedItems();
             }, 5000);
 
         }
+
     }
 
     function fetchCompletedItems() {
@@ -266,6 +327,8 @@
                 console.error(error);
             });
     });
+
+
 </script>
 </body>
 </html>

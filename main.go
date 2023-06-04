@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"sort"
 	"strconv"
 	"time"
 
@@ -85,6 +86,10 @@ func getCompletedItems(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 		completedItem.CompletedTime = completedTime.Format("15:04")
 		completedItems = append(completedItems, completedItem)
 	}
+
+	sort.Slice(completedItems, func(i, j int) bool {
+		return completedItems[i].CompletedTime > completedItems[j].CompletedTime
+	})
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(completedItems)

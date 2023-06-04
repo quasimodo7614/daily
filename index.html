@@ -2,39 +2,77 @@
 <head>
     <meta charset="UTF-8">
     <title>每日喂养</title>
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,600,700" rel="stylesheet">
     <style>
-        /* Enlarge form elements */
+        /* Set up font and background */
+        body {
+            font-family: 'Open Sans', sans-serif;
+            background-color: #f5f5f5;
+            font-size: 24px; /* Increase font size */
+            line-height: 1.5; /* Increase line height */
+        }
+
+        /* Add some padding and spacing */
         select, input[type="datetime-local"], input[type="submit"] {
-            font-size: 48px;
-            padding: 20px 40px;
+            font-size: 24px; /* Increase font size */
+            padding: 15px 20px; /* Slightly reduce padding */
+            margin-bottom: 30px; /* Increase margin bottom */
+        }
+
+        label {
+            display: block;
+            margin-bottom: 15px; /* Increase margin bottom */
+        }
+
+        h1 {
+            font-size: 48px; /* Increase font size */
+            margin-bottom: 30px; /* Increase margin bottom */
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px; /* Increase margin bottom */
+        }
+
+        th, td {
+            text-align: left;
+            padding: 15px;
+            border-bottom: 1px solid #ccc;
+        }
+
+        th {
+            background-color: #f2f2f2;
         }
 
         /* Style the tab buttons */
         .tab-button {
-            background-color: #f2f2f2;
+            background-color: #fff;
             border: none;
-            color: black;
-            padding: 30px 60px;
+            color: #666;
+            padding: 30px 40px;
             cursor: pointer;
-            font-size: 54px;
+            font-size: 36px; /* Increase font size */
             border-top-left-radius: 5px;
             border-top-right-radius: 5px;
+            transition: background-color 0.3s ease;
         }
 
         /* Enlarge text */
         body {
-            font-size: 48px;
+            font-size: 24px;
         }
 
         /* Change background color of active tab button */
         .tab-button.active {
             background-color: #ccc;
+            color: #fff;
         }
 
         /* Style the tab content */
         .tab-content {
             display: none;
-            padding: 20px;
+            padding: 30px;
             border: 1px solid #ccc;
             border-top: none;
         }
@@ -44,15 +82,29 @@
             display: block;
         }
 
-
+        /* Add some depth to the page */
+        body:before {
+            content: "";
+            display: block;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url("https://source.unsplash.com/1600x900/?baby");
+            background-repeat: no-repeat;
+            background-size: cover;
+            opacity: 0.2;
+            z-index: -1;
+        }
 
     </style>
 
 </head>
 <body>
 <div class="tab">
-    <button class="tab-button active" onclick="openTab(event, 'add-item')">Add Item</button>
-    <button class="tab-button " onclick="openTab(event, 'completed-items')">Completed Items</button>
+    <button class="tab-button active" onclick="openTab(event, 'add-item')">添加事件</button>
+    <button class="tab-button " onclick="openTab(event, 'completed-items')">已完成事件</button>
 </div>
 
 <div id="add-item" class="tab-content">
@@ -60,39 +112,29 @@
     <form>
         <label for="additem">事件:</label>
         <select id="additem" name="additem">
-            <option value="milk">milk</option>
-            <option value="diaper">diaper</option>
-            <option value="shit">shit</option>
-        </select><br>
+            <option value="喂奶">喂奶</option>
+            <option value="尿布湿">尿布湿</option>
+            <option value="大便">大便</option>
+        </select>
 
         <label for="description">奶量:</label>
         <select id="description" name="description">
+            <option value="">--请选择--</option>
             <option value="15 ml">15 ml</option>
-            <option value="20 ml">20 ml</option>
-            <option value="25 ml">25 ml</option>
-            <option value="30 ml">30 ml</option>
-            <option value="35 ml">35 ml</option>
+            <option value="35 ml">30 ml</option>
             <option value="40 ml">40 ml</option>
-            <option value="45 ml">45 ml</option>
             <option value="50 ml">50 ml</option>
-            <option value="55 ml">55 ml</option>
             <option value="60 ml">60 ml</option>
-            <option value="65 ml">65 ml</option>
             <option value="70 ml">70 ml</option>
-            <option value="75 ml">75 ml</option>
             <option value="80 ml">80 ml</option>
-            <option value="85 ml">85 ml</option>
             <option value="90 ml">90 ml</option>
-            <option value="95 ml">95 ml</option>
             <option value="100 ml">100 ml</option>
-            <option value="105 ml">105 ml</option>
             <option value="110 ml">110 ml</option>
-            <option value="115 ml">115 ml</option>
             <option value="120 ml">120 ml</option>
-        </select> <br>
+        </select>
 
         <label for="completed-time">完成时间:</label>
-        <input type="datetime-local" id="completed-time" name="completed-time" step="60"><br>
+        <input type="datetime-local" id="completed-time" name="completed-time" step="60">
 
         <input type="submit" value="Add Item">
     </form>
@@ -113,6 +155,7 @@
         <tbody id="completed-items-table"></tbody>
     </table>
 </div>
+</body>
 
 <script>
 
@@ -146,6 +189,11 @@
 
         if (tabName === "completed-items") {
             fetchCompletedItems();
+            // Set interval to poll data every 5 seconds
+            setInterval(function() {
+                fetchCompletedItems();
+            }, 5000);
+
         }
     }
 
